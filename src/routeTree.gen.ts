@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TiposMantenimientoRouteImport } from './routes/tipos-mantenimiento'
-import { Route as TalleresRouteImport } from './routes/talleres'
 import { Route as ReportesRouteImport } from './routes/reportes'
 import { Route as MaquinasRouteImport } from './routes/maquinas'
 import { Route as MantenimientosRouteImport } from './routes/mantenimientos'
@@ -23,11 +22,6 @@ import { Route as MantenimientosIdRouteImport } from './routes/mantenimientos.$i
 const TiposMantenimientoRoute = TiposMantenimientoRouteImport.update({
   id: '/tipos-mantenimiento',
   path: '/tipos-mantenimiento',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TalleresRoute = TalleresRouteImport.update({
-  id: '/talleres',
-  path: '/talleres',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportesRoute = ReportesRouteImport.update({
@@ -78,7 +72,6 @@ export interface FileRoutesByFullPath {
   '/mantenimientos': typeof MantenimientosRouteWithChildren
   '/maquinas': typeof MaquinasRouteWithChildren
   '/reportes': typeof ReportesRoute
-  '/talleres': typeof TalleresRoute
   '/tipos-mantenimiento': typeof TiposMantenimientoRoute
   '/mantenimientos/$id': typeof MantenimientosIdRoute
   '/maquinas/$id': typeof MaquinasIdRoute
@@ -90,7 +83,6 @@ export interface FileRoutesByTo {
   '/mantenimientos': typeof MantenimientosRouteWithChildren
   '/maquinas': typeof MaquinasRouteWithChildren
   '/reportes': typeof ReportesRoute
-  '/talleres': typeof TalleresRoute
   '/tipos-mantenimiento': typeof TiposMantenimientoRoute
   '/mantenimientos/$id': typeof MantenimientosIdRoute
   '/maquinas/$id': typeof MaquinasIdRoute
@@ -103,7 +95,6 @@ export interface FileRoutesById {
   '/mantenimientos': typeof MantenimientosRouteWithChildren
   '/maquinas': typeof MaquinasRouteWithChildren
   '/reportes': typeof ReportesRoute
-  '/talleres': typeof TalleresRoute
   '/tipos-mantenimiento': typeof TiposMantenimientoRoute
   '/mantenimientos/$id': typeof MantenimientosIdRoute
   '/maquinas/$id': typeof MaquinasIdRoute
@@ -117,7 +108,6 @@ export interface FileRouteTypes {
     | '/mantenimientos'
     | '/maquinas'
     | '/reportes'
-    | '/talleres'
     | '/tipos-mantenimiento'
     | '/mantenimientos/$id'
     | '/maquinas/$id'
@@ -129,7 +119,6 @@ export interface FileRouteTypes {
     | '/mantenimientos'
     | '/maquinas'
     | '/reportes'
-    | '/talleres'
     | '/tipos-mantenimiento'
     | '/mantenimientos/$id'
     | '/maquinas/$id'
@@ -141,7 +130,6 @@ export interface FileRouteTypes {
     | '/mantenimientos'
     | '/maquinas'
     | '/reportes'
-    | '/talleres'
     | '/tipos-mantenimiento'
     | '/mantenimientos/$id'
     | '/maquinas/$id'
@@ -154,7 +142,6 @@ export interface RootRouteChildren {
   MantenimientosRoute: typeof MantenimientosRouteWithChildren
   MaquinasRoute: typeof MaquinasRouteWithChildren
   ReportesRoute: typeof ReportesRoute
-  TalleresRoute: typeof TalleresRoute
   TiposMantenimientoRoute: typeof TiposMantenimientoRoute
 }
 
@@ -165,13 +152,6 @@ declare module '@tanstack/react-router' {
       path: '/tipos-mantenimiento'
       fullPath: '/tipos-mantenimiento'
       preLoaderRoute: typeof TiposMantenimientoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/talleres': {
-      id: '/talleres'
-      path: '/talleres'
-      fullPath: '/talleres'
-      preLoaderRoute: typeof TalleresRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reportes': {
@@ -264,7 +244,6 @@ const rootRouteChildren: RootRouteChildren = {
   MantenimientosRoute: MantenimientosRouteWithChildren,
   MaquinasRoute: MaquinasRouteWithChildren,
   ReportesRoute: ReportesRoute,
-  TalleresRoute: TalleresRoute,
   TiposMantenimientoRoute: TiposMantenimientoRoute,
 }
 export const routeTree = rootRouteImport
