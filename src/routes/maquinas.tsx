@@ -1,4 +1,4 @@
-import { formatDate, formatDateLong } from "@/lib/format";
+import { formatDate, formatDateLong, formatNumber } from "@/lib/format";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
@@ -146,7 +146,7 @@ function MachinesPage() {
                   </div>
                   <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
                     <div><dt className="text-muted-foreground">Área</dt><dd className="truncate">{m.area || m.location || "—"}</dd></div>
-                    <div><dt className="text-muted-foreground">Horas uso</dt><dd className="font-mono">{m.hoursOfUse.toLocaleString()}</dd></div>
+                    <div><dt className="text-muted-foreground">Horas uso</dt><dd className="font-mono">{formatNumber(m.hoursOfUse)}</dd></div>
                     <div><dt className="text-muted-foreground">Último mant.</dt><dd>{lm ? formatDate(lm.date) : "—"}</dd></div>
                     <div><dt className="text-muted-foreground">Próximo</dt><dd className={nm ? "text-primary" : ""}>{nm ? formatDate(nm.date) : "—"}</dd></div>
                   </dl>
