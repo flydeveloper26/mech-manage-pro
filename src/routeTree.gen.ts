@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TiposMantenimientoRouteImport } from './routes/tipos-mantenimiento'
 import { Route as TalleresRouteImport } from './routes/talleres'
 import { Route as ReportesRouteImport } from './routes/reportes'
 import { Route as MaquinasRouteImport } from './routes/maquinas'
@@ -17,7 +18,13 @@ import { Route as FichasTecnicasRouteImport } from './routes/fichas-tecnicas'
 import { Route as ConfiguracionRouteImport } from './routes/configuracion'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MaquinasIdRouteImport } from './routes/maquinas.$id'
+import { Route as MantenimientosIdRouteImport } from './routes/mantenimientos.$id'
 
+const TiposMantenimientoRoute = TiposMantenimientoRouteImport.update({
+  id: '/tipos-mantenimiento',
+  path: '/tipos-mantenimiento',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TalleresRoute = TalleresRouteImport.update({
   id: '/talleres',
   path: '/talleres',
@@ -58,25 +65,34 @@ const MaquinasIdRoute = MaquinasIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => MaquinasRoute,
 } as any)
+const MantenimientosIdRoute = MantenimientosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => MantenimientosRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/configuracion': typeof ConfiguracionRoute
   '/fichas-tecnicas': typeof FichasTecnicasRoute
-  '/mantenimientos': typeof MantenimientosRoute
+  '/mantenimientos': typeof MantenimientosRouteWithChildren
   '/maquinas': typeof MaquinasRouteWithChildren
   '/reportes': typeof ReportesRoute
   '/talleres': typeof TalleresRoute
+  '/tipos-mantenimiento': typeof TiposMantenimientoRoute
+  '/mantenimientos/$id': typeof MantenimientosIdRoute
   '/maquinas/$id': typeof MaquinasIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/configuracion': typeof ConfiguracionRoute
   '/fichas-tecnicas': typeof FichasTecnicasRoute
-  '/mantenimientos': typeof MantenimientosRoute
+  '/mantenimientos': typeof MantenimientosRouteWithChildren
   '/maquinas': typeof MaquinasRouteWithChildren
   '/reportes': typeof ReportesRoute
   '/talleres': typeof TalleresRoute
+  '/tipos-mantenimiento': typeof TiposMantenimientoRoute
+  '/mantenimientos/$id': typeof MantenimientosIdRoute
   '/maquinas/$id': typeof MaquinasIdRoute
 }
 export interface FileRoutesById {
@@ -84,10 +100,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/configuracion': typeof ConfiguracionRoute
   '/fichas-tecnicas': typeof FichasTecnicasRoute
-  '/mantenimientos': typeof MantenimientosRoute
+  '/mantenimientos': typeof MantenimientosRouteWithChildren
   '/maquinas': typeof MaquinasRouteWithChildren
   '/reportes': typeof ReportesRoute
   '/talleres': typeof TalleresRoute
+  '/tipos-mantenimiento': typeof TiposMantenimientoRoute
+  '/mantenimientos/$id': typeof MantenimientosIdRoute
   '/maquinas/$id': typeof MaquinasIdRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +118,8 @@ export interface FileRouteTypes {
     | '/maquinas'
     | '/reportes'
     | '/talleres'
+    | '/tipos-mantenimiento'
+    | '/mantenimientos/$id'
     | '/maquinas/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +130,8 @@ export interface FileRouteTypes {
     | '/maquinas'
     | '/reportes'
     | '/talleres'
+    | '/tipos-mantenimiento'
+    | '/mantenimientos/$id'
     | '/maquinas/$id'
   id:
     | '__root__'
@@ -120,6 +142,8 @@ export interface FileRouteTypes {
     | '/maquinas'
     | '/reportes'
     | '/talleres'
+    | '/tipos-mantenimiento'
+    | '/mantenimientos/$id'
     | '/maquinas/$id'
   fileRoutesById: FileRoutesById
 }
@@ -127,14 +151,22 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ConfiguracionRoute: typeof ConfiguracionRoute
   FichasTecnicasRoute: typeof FichasTecnicasRoute
-  MantenimientosRoute: typeof MantenimientosRoute
+  MantenimientosRoute: typeof MantenimientosRouteWithChildren
   MaquinasRoute: typeof MaquinasRouteWithChildren
   ReportesRoute: typeof ReportesRoute
   TalleresRoute: typeof TalleresRoute
+  TiposMantenimientoRoute: typeof TiposMantenimientoRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tipos-mantenimiento': {
+      id: '/tipos-mantenimiento'
+      path: '/tipos-mantenimiento'
+      fullPath: '/tipos-mantenimiento'
+      preLoaderRoute: typeof TiposMantenimientoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/talleres': {
       id: '/talleres'
       path: '/talleres'
@@ -191,8 +223,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MaquinasIdRouteImport
       parentRoute: typeof MaquinasRoute
     }
+    '/mantenimientos/$id': {
+      id: '/mantenimientos/$id'
+      path: '/$id'
+      fullPath: '/mantenimientos/$id'
+      preLoaderRoute: typeof MantenimientosIdRouteImport
+      parentRoute: typeof MantenimientosRoute
+    }
   }
 }
+
+interface MantenimientosRouteChildren {
+  MantenimientosIdRoute: typeof MantenimientosIdRoute
+}
+
+const MantenimientosRouteChildren: MantenimientosRouteChildren = {
+  MantenimientosIdRoute: MantenimientosIdRoute,
+}
+
+const MantenimientosRouteWithChildren = MantenimientosRoute._addFileChildren(
+  MantenimientosRouteChildren,
+)
 
 interface MaquinasRouteChildren {
   MaquinasIdRoute: typeof MaquinasIdRoute
@@ -210,10 +261,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ConfiguracionRoute: ConfiguracionRoute,
   FichasTecnicasRoute: FichasTecnicasRoute,
-  MantenimientosRoute: MantenimientosRoute,
+  MantenimientosRoute: MantenimientosRouteWithChildren,
   MaquinasRoute: MaquinasRouteWithChildren,
   ReportesRoute: ReportesRoute,
   TalleresRoute: TalleresRoute,
+  TiposMantenimientoRoute: TiposMantenimientoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
