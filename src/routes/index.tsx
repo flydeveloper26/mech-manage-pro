@@ -125,7 +125,7 @@ function Dashboard() {
                         </div>
                       </div>
                       <div className="text-right text-xs text-muted-foreground whitespace-nowrap">
-                        {new Date(r.date).toLocaleDateString("es")}
+                        {formatDate(r.date)}
                         <div className="text-foreground font-medium">{r.status}</div>
                       </div>
                     </li>
@@ -172,7 +172,7 @@ function Dashboard() {
                   return (
                     <li key={r.id} className="pl-4 relative">
                       <span className="absolute -left-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-primary" />
-                      <div className="text-xs text-muted-foreground">{new Date(r.date).toLocaleDateString("es", { weekday: "short", day: "2-digit", month: "short" })}</div>
+                      <div className="text-xs text-muted-foreground">{formatDateLong(r.date)}</div>
                       <div className="text-sm font-medium">{t?.name}</div>
                       <div className="text-xs text-muted-foreground">
                         <span className="font-mono">{m?.code}</span> · {m?.name}

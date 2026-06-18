@@ -146,8 +146,8 @@ function MachinesPage() {
                   <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
                     <div><dt className="text-muted-foreground">Área</dt><dd className="truncate">{m.area || m.location || "—"}</dd></div>
                     <div><dt className="text-muted-foreground">Horas uso</dt><dd className="font-mono">{m.hoursOfUse.toLocaleString()}</dd></div>
-                    <div><dt className="text-muted-foreground">Último mant.</dt><dd>{lm ? new Date(lm.date).toLocaleDateString("es") : "—"}</dd></div>
-                    <div><dt className="text-muted-foreground">Próximo</dt><dd className={nm ? "text-primary" : ""}>{nm ? new Date(nm.date).toLocaleDateString("es") : "—"}</dd></div>
+                    <div><dt className="text-muted-foreground">Último mant.</dt><dd>{lm ? formatDate(lm.date) : "—"}</dd></div>
+                    <div><dt className="text-muted-foreground">Próximo</dt><dd className={nm ? "text-primary" : ""}>{nm ? formatDate(nm.date) : "—"}</dd></div>
                   </dl>
                   <div className="mt-3 flex items-center justify-between gap-1 border-t border-border pt-3">
                     <Button asChild size="sm" variant="ghost"><Link to="/maquinas/$id" params={{ id: m.id }}><Eye className="h-4 w-4 mr-1" /> Ver</Link></Button>
@@ -187,8 +187,8 @@ function MachinesPage() {
                       <td className="p-3">{m.area || m.location || "—"}</td>
                       <td className="p-3"><StatusBadge status={m.status} /></td>
                       <td className="p-3"><CriticalityBadge level={m.criticality} /></td>
-                      <td className="p-3 whitespace-nowrap">{lm ? new Date(lm.date).toLocaleDateString("es") : "—"}</td>
-                      <td className="p-3 whitespace-nowrap">{nm ? new Date(nm.date).toLocaleDateString("es") : "—"}</td>
+                      <td className="p-3 whitespace-nowrap">{lm ? formatDate(lm.date) : "—"}</td>
+                      <td className="p-3 whitespace-nowrap">{nm ? formatDate(nm.date) : "—"}</td>
                       <td className="p-3 text-right">
                         <div className="flex justify-end gap-1">
                           <Button asChild size="sm" variant="ghost"><Link to="/maquinas/$id" params={{ id: m.id }}><Eye className="h-4 w-4" /></Link></Button>

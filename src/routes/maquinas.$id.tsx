@@ -84,7 +84,7 @@ function MachineDetail() {
           <Card className="bg-card border-border"><CardContent className="p-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Info label="Marca / Modelo" value={`${machine.brand} / ${machine.model}`} />
             <Info label="N° de Serie" value={machine.serial} mono />
-            <Info label="Fecha de Compra" value={machine.purchaseDate ? new Date(machine.purchaseDate).toLocaleDateString("es") : "—"} />
+            <Info label="Fecha de Compra" value={machine.purchaseDate ? formatDate(machine.purchaseDate) : "—"} />
             <Info label="Costo" value={machine.cost ? `S/ ${machine.cost.toLocaleString()}` : "—"} />
             <Info label="Área" value={machine.area || machine.location} />
             <Info label="Departamento" value={machine.department} />
@@ -162,7 +162,7 @@ function MachineDetail() {
                   return (
                     <li key={r.id} className="pl-4 relative">
                       <span className={`absolute -left-1.5 top-1.5 h-2.5 w-2.5 rounded-full ${dot}`} />
-                      <div className="text-xs text-muted-foreground">{new Date(r.date).toLocaleDateString("es", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })}</div>
+                      <div className="text-xs text-muted-foreground">{formatDateLong(r.date)}</div>
                       <div className="text-sm font-medium">{t?.name} <span className="ml-2 text-xs text-muted-foreground">({t?.category})</span></div>
                       <div className="text-xs text-muted-foreground">{r.technician} · {r.status} {r.cost ? `· S/ ${r.cost}` : ""}</div>
                       {r.notes && <div className="text-xs mt-1">{r.notes}</div>}

@@ -69,7 +69,7 @@ function Page() {
             <Info label="Marca" value={machine.brand} />
             <Info label="Modelo" value={machine.model} />
             <Info label="N° de Serie" value={machine.serial} mono />
-            <Info label="Fecha de compra" value={machine.purchaseDate ? new Date(machine.purchaseDate).toLocaleDateString("es") : "—"} />
+            <Info label="Fecha de compra" value={machine.purchaseDate ? formatDate(machine.purchaseDate) : "—"} />
             <Info label="Costo" value={machine.cost ? `S/ ${machine.cost.toLocaleString("es-PE", { minimumFractionDigits: 2 })}` : "—"} />
             <Info label="Área" value={machine.area || machine.location} />
             <Info label="Departamento" value={machine.department} />
