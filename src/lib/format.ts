@@ -20,3 +20,13 @@ export function formatDateLong(iso?: string): string {
   const wd = DIAS[date.getUTCDay()];
   return `${wd} ${String(d).padStart(2, "0")} ${MESES[m - 1]} ${y}`;
 }
+
+// Locale-stable number formatter (avoids SSR/CSR hydration mismatches).
+// Uses thin-space thousands separator to be locale-neutral.
+export function formatNumber(n?: number, fractionDigits = 0): string {
+  if (n === undefined || n === null || Number.isNaN(n)) return "—";
+  const fixed = n.toFixed(fractionDigits);
+  const [intPart, decPart] = fixed.split(".");
+  const withSep = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return decPart ? `${withSep}.${decPart}` : withSep;
+}

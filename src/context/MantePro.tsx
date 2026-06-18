@@ -206,7 +206,11 @@ interface State {
 }
 
 const Ctx = createContext<State | null>(null);
+// Runtime uid for new items (only used after user interaction, never during SSR initial render).
 const uid = () => Math.random().toString(36).slice(2, 10);
+// Deterministic uid for initial seed data — keeps SSR and CSR markup identical.
+let _seedCounter = 0;
+const sid = (prefix = "s") => `${prefix}-${++_seedCounter}`;
 
 const initialMachines: Machine[] = [
   {
