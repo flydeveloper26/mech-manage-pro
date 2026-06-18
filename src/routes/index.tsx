@@ -53,7 +53,8 @@ function Kpi({ icon: Icon, label, value, hint, tone = "primary" }: { icon: any; 
 }
 
 function Dashboard() {
-  const { machines, records, types } = useMantePro();
+  const { machines, records, types, allDocuments } = useMantePro();
+  const recentDocs = allDocuments().sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt)).slice(0, 5);
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const in7 = new Date(now.getTime() + 7 * 86400000);
