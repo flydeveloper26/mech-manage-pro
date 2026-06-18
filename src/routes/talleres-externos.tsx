@@ -30,7 +30,7 @@ function StatusPill({ s }: { s: WorkshopRecordStatus }) {
 }
 
 function Page() {
-  const { workshopRecords, machines, workshops, addWorkshopRecord } = useMantePro();
+  const { workshopRecords, machines, addWorkshopRecord } = useMantePro();
   const [view, setView] = useState<"cards" | "timeline">("cards");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [machineFilter, setMachineFilter] = useState<string>("all");
