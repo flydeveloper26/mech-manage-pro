@@ -500,15 +500,61 @@ const initialSheets: TechSheet[] = [
   { id: "s4", machineId: "m4", title: "Manual Soldadora MIG-350", updatedAt: "2025-01-10", pages: 56 },
 ];
 
+const initialWorkshopRecords: WorkshopRecord[] = [
+  {
+    id: "wr1", machineId: "m3", workshopName: "HidroServ Industrial",
+    workshopAddress: "Av. Industrial 1245, Madrid", workshopPhone: "+34 913 555 111", workshopContact: "Miguel Ángel",
+    sentDate: "2025-06-05", estimatedReturn: "2025-06-25",
+    problemType: "Falla mecánica",
+    problemDescription: "Pérdida de presión en cilindro principal; fugas internas detectadas tras prueba de carga.",
+    affectedComponentIds: [],
+    condition: "No operativo", approvedBudget: 1850, authorizedBy: "J. Mendoza",
+    status: "En Taller", technician: "Carlos Ruiz",
+    documents: [],
+    logs: [
+      { id: uid(), at: "2025-06-05T09:00", note: "Equipo retirado por el taller. Acta firmada.", status: "En Taller" },
+      { id: uid(), at: "2025-06-10T11:30", note: "Taller confirma necesidad de cambio de sellos y revisión de bomba." },
+    ],
+  },
+];
+
+const initialSpareParts: SparePart[] = [
+  { id: "sp1", name: "Correa trapezoidal A-42", reference: "A-42", supplier: "Optibelt", price: 35 },
+  { id: "sp2", name: "Rodamiento 6205-2RS", reference: "6205-2RS", supplier: "SKF", price: 28 },
+  { id: "sp3", name: "Aceite ISO VG 68", reference: "VG68-5L", supplier: "Shell", price: 28 },
+  { id: "sp4", name: "Rodamiento angular 7206 BEP", reference: "7206-BEP", supplier: "SKF", price: 95 },
+];
+
+const initialTechnicians: Technician[] = [
+  { id: "u1", name: "J. Mendoza", role: "Jefe de Mantenimiento", area: "General" },
+  { id: "u2", name: "Carlos Ruiz", role: "Técnico Mecánico", area: "Taller de Mecanizado" },
+  { id: "u3", name: "Juan Pérez", role: "Técnico Mecánico", area: "Taller de Mecanizado" },
+  { id: "u4", name: "María López", role: "Técnico Eléctrico", area: "Nave A" },
+  { id: "u5", name: "Luis Fernández", role: "Técnico Predictivo", area: "General" },
+  { id: "u6", name: "Ana Torres", role: "Operadora", area: "Nave B" },
+];
+
+const initialSettings: AppSettings = {
+  institutionName: "Planta Industrial Norte",
+  notifyDaysBefore: 7,
+  mtbfGoalH: 220,
+  availabilityGoalPct: 95,
+};
+
 export function MantePoProvider({ children }: { children: ReactNode }) {
   const [machines, setMachines] = useState(initialMachines);
   const [types, setTypes] = useState(initialTypes);
   const [records, setRecords] = useState(initialRecords);
   const [workshops, setWorkshops] = useState(initialWorkshops);
   const [sheets] = useState(initialSheets);
+  const [workshopRecords, setWorkshopRecords] = useState(initialWorkshopRecords);
+  const [spareParts, setSpareParts] = useState(initialSpareParts);
+  const [technicians, setTechnicians] = useState(initialTechnicians);
+  const [settings, setSettings] = useState(initialSettings);
 
   const value: State = {
     machines, types, records, workshops, sheets,
+    workshopRecords, spareParts, technicians, settings,
     addMachine: (m) => setMachines((x) => [...x, { ...m, id: uid() }]),
     updateMachine: (id, patch) => setMachines((x) => x.map((m) => (m.id === id ? { ...m, ...patch } : m))),
     deleteMachine: (id) => setMachines((x) => x.filter((m) => m.id !== id)),
@@ -519,6 +565,7 @@ export function MantePoProvider({ children }: { children: ReactNode }) {
     updateType: (id, patch) => setTypes((x) => x.map((t) => (t.id === id ? { ...t, ...patch } : t))),
     deleteType: (id) => setTypes((x) => x.filter((t) => t.id !== id)),
     addWorkshop: (w) => setWorkshops((x) => [...x, { ...w, id: uid() }]),
+    updateWorkshop: (id, patch) => setWorkshops((x) => x.map((w) => (w.id === id ? { ...w, ...patch } : w))),
     deleteWorkshop: (id) => setWorkshops((x) => x.filter((w) => w.id !== id)),
     upsertComponent: (machineId, c) => setMachines((x) => x.map((m) => {
       if (m.id !== machineId) return m;
@@ -529,6 +576,44 @@ export function MantePoProvider({ children }: { children: ReactNode }) {
     deleteComponent: (machineId, componentId) => setMachines((x) => x.map((m) =>
       m.id === machineId ? { ...m, components: m.components.filter((c) => c.id !== componentId), sheetUpdatedAt: todayISO() } : m,
     )),
+    addWorkshopRecord: (r) => {
+      const id = uid();
+      setWorkshopRecords((x) => [{ ...r, id }, ...x]);
+      setMachines((x) => x.map((m) => (m.id === r.machineId ? { ...m, status: "En Taller" } : m)));
+      return id;
+    },
+    updateWorkshopRecord: (id, patch) => setWorkshopRecords((x) => x.map((r) => {
+      if (r.id !== id) return r;
+      const next = { ...r, ...patch };
+      if (patch.status && patch.status !== r.status) {
+        setMachines((ms) => ms.map((m) => {
+          if (m.id !== r.machineId) return m;
+          if (patch.status === "Devuelto") return { ...m, status: "Operativo" };
+          if (patch.status === "Cancelado") return { ...m, status: "Operativo" };
+          if (patch.status === "En Taller") return { ...m, status: "En Taller" };
+          return m;
+        }));
+      }
+      return next;
+    })),
+    deleteWorkshopRecord: (id) => setWorkshopRecords((x) => x.filter((r) => r.id !== id)),
+    addWorkshopLog: (id, note, status) => setWorkshopRecords((x) => x.map((r) =>
+      r.id === id ? { ...r, status: status ?? r.status, logs: [...r.logs, { id: uid(), at: new Date().toISOString(), note, status }] } : r,
+    )),
+    addDocumentsToWorkshop: (id, docs) => setWorkshopRecords((x) => x.map((r) =>
+      r.id === id ? { ...r, documents: [...r.documents, ...docs] } : r,
+    )),
+    removeDocumentFromWorkshop: (id, docId) => setWorkshopRecords((x) => x.map((r) =>
+      r.id === id ? { ...r, documents: r.documents.filter((d) => d.id !== docId) } : r,
+    )),
+    addSparePart: (p) => setSpareParts((x) => [...x, { ...p, id: uid() }]),
+    updateSparePart: (id, patch) => setSpareParts((x) => x.map((p) => (p.id === id ? { ...p, ...patch } : p))),
+    deleteSparePart: (id) => setSpareParts((x) => x.filter((p) => p.id !== id)),
+    addTechnician: (t) => setTechnicians((x) => [...x, { ...t, id: uid() }]),
+    updateTechnician: (id, patch) => setTechnicians((x) => x.map((t) => (t.id === id ? { ...t, ...patch } : t))),
+    deleteTechnician: (id) => setTechnicians((x) => x.filter((t) => t.id !== id)),
+    updateSettings: (s) => setSettings((x) => ({ ...x, ...s })),
+    allDocuments: () => workshopRecords.flatMap((r) => r.documents.map((d) => ({ ...d, workshopRecordId: r.id, machineId: r.machineId }))),
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
