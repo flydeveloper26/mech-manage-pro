@@ -15,7 +15,7 @@ const nav = [
   { to: "/maquinas", label: "Máquinas", icon: Factory },
   { to: "/mantenimientos", label: "Mantenimientos", icon: Wrench },
   { to: "/tipos-mantenimiento", label: "Tipos de Mantenimiento", icon: ClipboardList },
-  { to: "/talleres", label: "Talleres Externos", icon: Store },
+  { to: "/talleres-externos", label: "Talleres Externos", icon: Store },
   { to: "/fichas-tecnicas", label: "Fichas Técnicas", icon: FileText },
   { to: "/reportes", label: "Reportes", icon: BarChart3 },
   { to: "/configuracion", label: "Configuración", icon: Settings },
