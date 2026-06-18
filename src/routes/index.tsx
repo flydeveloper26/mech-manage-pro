@@ -1,3 +1,4 @@
+import { formatDate, formatDateLong } from "@/lib/format";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -81,9 +82,10 @@ function Dashboard() {
     .slice(0, 5);
 
   // Trend (last 6 months) mock derived
+  const MES_SHORT = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
   const trend = Array.from({ length: 6 }).map((_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
-    const label = d.toLocaleDateString("es", { month: "short" });
+    const monthIdx = ((now.getMonth() - (5 - i)) % 12 + 12) % 12;
+    const label = MES_SHORT[monthIdx];
     return {
       month: label,
       MTBF: 180 + Math.round(Math.sin(i) * 20 + i * 6),
@@ -125,7 +127,7 @@ function Dashboard() {
                         </div>
                       </div>
                       <div className="text-right text-xs text-muted-foreground whitespace-nowrap">
-                        {new Date(r.date).toLocaleDateString("es")}
+                        {formatDate(r.date)}
                         <div className="text-foreground font-medium">{r.status}</div>
                       </div>
                     </li>
@@ -172,7 +174,7 @@ function Dashboard() {
                   return (
                     <li key={r.id} className="pl-4 relative">
                       <span className="absolute -left-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-primary" />
-                      <div className="text-xs text-muted-foreground">{new Date(r.date).toLocaleDateString("es", { weekday: "short", day: "2-digit", month: "short" })}</div>
+                      <div className="text-xs text-muted-foreground">{formatDateLong(r.date)}</div>
                       <div className="text-sm font-medium">{t?.name}</div>
                       <div className="text-xs text-muted-foreground">
                         <span className="font-mono">{m?.code}</span> · {m?.name}
