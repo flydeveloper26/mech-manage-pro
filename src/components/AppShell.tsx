@@ -25,7 +25,7 @@ export function AppShell({ children, title }: { children: ReactNode; title: stri
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { machines, records, workshops } = useMantePro();
+  const { machines, records, workshops, allDocuments } = useMantePro();
   const [q, setQ] = useState("");
 
   const onSearch = (e: React.FormEvent) => {
@@ -35,7 +35,8 @@ export function AppShell({ children, title }: { children: ReactNode; title: stri
     const mc = machines.filter((m) => m.code.toLowerCase().includes(lc) || m.name.toLowerCase().includes(lc)).length;
     const rc = records.filter((r) => r.notes.toLowerCase().includes(lc) || r.technician.toLowerCase().includes(lc)).length;
     const wc = workshops.filter((w) => w.name.toLowerCase().includes(lc)).length;
-    toast(`Resultados: ${mc} máquinas · ${rc} mantenimientos · ${wc} talleres`);
+    const dc = allDocuments().filter((d) => d.name.toLowerCase().includes(lc)).length;
+    toast(`Resultados: ${mc} máquinas · ${rc} mantenimientos · ${wc} talleres · ${dc} documentos`);
   };
 
   return (
