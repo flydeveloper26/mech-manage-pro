@@ -82,9 +82,10 @@ function Dashboard() {
     .slice(0, 5);
 
   // Trend (last 6 months) mock derived
+  const MES_SHORT = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
   const trend = Array.from({ length: 6 }).map((_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
-    const label = d.toLocaleDateString("es", { month: "short" });
+    const monthIdx = ((now.getMonth() - (5 - i)) % 12 + 12) % 12;
+    const label = MES_SHORT[monthIdx];
     return {
       month: label,
       MTBF: 180 + Math.round(Math.sin(i) * 20 + i * 6),
