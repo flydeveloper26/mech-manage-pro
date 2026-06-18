@@ -103,14 +103,78 @@ export interface MaintenanceRecord {
 
 export interface Workshop {
   id: string; name: string; contact: string; phone: string; specialty: string; machinesInService: number;
+  address?: string;
 }
 export interface TechSheet {
   id: string; machineId: string; title: string; updatedAt: string; pages: number;
 }
 
+export type WorkshopRecordStatus = "En Taller" | "Devuelto" | "Cancelado";
+export type ProblemType = "Falla eléctrica" | "Falla mecánica" | "Desgaste de componentes" | "Calibración" | "Reparación mayor" | "Otro";
+export type WorkshopCondition = "Operativo con fallas" | "No operativo" | "Parcialmente operativo";
+export type DocCategory = "Diagnóstico previo" | "Presupuesto del taller" | "Fotografías del problema" | "Factura" | "Informe de reparación" | "Otros";
+
+export const PROBLEM_TYPES: ProblemType[] = ["Falla eléctrica","Falla mecánica","Desgaste de componentes","Calibración","Reparación mayor","Otro"];
+export const WORKSHOP_CONDITIONS: WorkshopCondition[] = ["Operativo con fallas","No operativo","Parcialmente operativo"];
+export const DOC_CATEGORIES: DocCategory[] = ["Diagnóstico previo","Presupuesto del taller","Fotografías del problema","Factura","Informe de reparación","Otros"];
+
+export interface AppDocument {
+  id: string;
+  name: string;
+  size: number;
+  mime: string;
+  dataUrl: string;
+  category: DocCategory;
+  description?: string;
+  uploadedAt: string;
+  workshopRecordId?: string;
+  machineId?: string;
+}
+
+export interface WorkshopLog { id: string; at: string; note: string; status?: WorkshopRecordStatus }
+
+export interface WorkshopRecord {
+  id: string;
+  machineId: string;
+  workshopName: string;
+  workshopAddress?: string;
+  workshopPhone?: string;
+  workshopContact?: string;
+  sentDate: string;
+  estimatedReturn?: string;
+  actualReturn?: string;
+  problemType: ProblemType;
+  problemDescription: string;
+  affectedComponentIds: string[];
+  condition: WorkshopCondition;
+  approvedBudget: number;
+  authorizedBy: string;
+  status: WorkshopRecordStatus;
+  technician: string;
+  documents: AppDocument[];
+  logs: WorkshopLog[];
+  finalCost?: number;
+  workSummary?: string;
+  rating?: number;
+}
+
+export interface SparePart { id: string; name: string; reference: string; supplier: string; price: number }
+export interface Technician { id: string; name: string; role: string; area: string }
+export interface AppSettings {
+  institutionName: string;
+  institutionLogo?: string;
+  notifyDaysBefore: number;
+  mtbfGoalH: number;
+  availabilityGoalPct: number;
+}
+
 interface State {
   machines: Machine[]; types: MaintenanceType[]; records: MaintenanceRecord[];
   workshops: Workshop[]; sheets: TechSheet[];
+  workshopRecords: WorkshopRecord[];
+  spareParts: SparePart[];
+  technicians: Technician[];
+  settings: AppSettings;
   addMachine: (m: Omit<Machine, "id">) => void;
   updateMachine: (id: string, m: Partial<Machine>) => void;
   deleteMachine: (id: string) => void;
@@ -121,9 +185,24 @@ interface State {
   updateType: (id: string, t: Partial<MaintenanceType>) => void;
   deleteType: (id: string) => void;
   addWorkshop: (w: Omit<Workshop, "id">) => void;
+  updateWorkshop: (id: string, w: Partial<Workshop>) => void;
   deleteWorkshop: (id: string) => void;
   upsertComponent: (machineId: string, c: CriticalComponent) => void;
   deleteComponent: (machineId: string, componentId: string) => void;
+  addWorkshopRecord: (r: Omit<WorkshopRecord, "id">) => string;
+  updateWorkshopRecord: (id: string, r: Partial<WorkshopRecord>) => void;
+  deleteWorkshopRecord: (id: string) => void;
+  addWorkshopLog: (id: string, note: string, status?: WorkshopRecordStatus) => void;
+  addDocumentsToWorkshop: (id: string, docs: AppDocument[]) => void;
+  removeDocumentFromWorkshop: (id: string, docId: string) => void;
+  addSparePart: (p: Omit<SparePart, "id">) => void;
+  updateSparePart: (id: string, p: Partial<SparePart>) => void;
+  deleteSparePart: (id: string) => void;
+  addTechnician: (t: Omit<Technician, "id">) => void;
+  updateTechnician: (id: string, t: Partial<Technician>) => void;
+  deleteTechnician: (id: string) => void;
+  updateSettings: (s: Partial<AppSettings>) => void;
+  allDocuments: () => AppDocument[];
 }
 
 const Ctx = createContext<State | null>(null);
