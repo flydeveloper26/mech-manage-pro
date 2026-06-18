@@ -14,9 +14,10 @@ import { Route as TalleresRouteImport } from './routes/talleres'
 import { Route as ReportesRouteImport } from './routes/reportes'
 import { Route as MaquinasRouteImport } from './routes/maquinas'
 import { Route as MantenimientosRouteImport } from './routes/mantenimientos'
-import { Route as FichasRouteImport } from './routes/fichas'
+import { Route as FichasTecnicasRouteImport } from './routes/fichas-tecnicas'
 import { Route as ConfiguracionRouteImport } from './routes/configuracion'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MaquinasIdRouteImport } from './routes/maquinas.$id'
 
 const TiposRoute = TiposRouteImport.update({
   id: '/tipos',
@@ -43,9 +44,9 @@ const MantenimientosRoute = MantenimientosRouteImport.update({
   path: '/mantenimientos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FichasRoute = FichasRouteImport.update({
-  id: '/fichas',
-  path: '/fichas',
+const FichasTecnicasRoute = FichasTecnicasRouteImport.update({
+  id: '/fichas-tecnicas',
+  path: '/fichas-tecnicas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConfiguracionRoute = ConfiguracionRouteImport.update({
@@ -58,77 +59,88 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MaquinasIdRoute = MaquinasIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => MaquinasRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/configuracion': typeof ConfiguracionRoute
-  '/fichas': typeof FichasRoute
+  '/fichas-tecnicas': typeof FichasTecnicasRoute
   '/mantenimientos': typeof MantenimientosRoute
-  '/maquinas': typeof MaquinasRoute
+  '/maquinas': typeof MaquinasRouteWithChildren
   '/reportes': typeof ReportesRoute
   '/talleres': typeof TalleresRoute
   '/tipos': typeof TiposRoute
+  '/maquinas/$id': typeof MaquinasIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/configuracion': typeof ConfiguracionRoute
-  '/fichas': typeof FichasRoute
+  '/fichas-tecnicas': typeof FichasTecnicasRoute
   '/mantenimientos': typeof MantenimientosRoute
-  '/maquinas': typeof MaquinasRoute
+  '/maquinas': typeof MaquinasRouteWithChildren
   '/reportes': typeof ReportesRoute
   '/talleres': typeof TalleresRoute
   '/tipos': typeof TiposRoute
+  '/maquinas/$id': typeof MaquinasIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/configuracion': typeof ConfiguracionRoute
-  '/fichas': typeof FichasRoute
+  '/fichas-tecnicas': typeof FichasTecnicasRoute
   '/mantenimientos': typeof MantenimientosRoute
-  '/maquinas': typeof MaquinasRoute
+  '/maquinas': typeof MaquinasRouteWithChildren
   '/reportes': typeof ReportesRoute
   '/talleres': typeof TalleresRoute
   '/tipos': typeof TiposRoute
+  '/maquinas/$id': typeof MaquinasIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/configuracion'
-    | '/fichas'
+    | '/fichas-tecnicas'
     | '/mantenimientos'
     | '/maquinas'
     | '/reportes'
     | '/talleres'
     | '/tipos'
+    | '/maquinas/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/configuracion'
-    | '/fichas'
+    | '/fichas-tecnicas'
     | '/mantenimientos'
     | '/maquinas'
     | '/reportes'
     | '/talleres'
     | '/tipos'
+    | '/maquinas/$id'
   id:
     | '__root__'
     | '/'
     | '/configuracion'
-    | '/fichas'
+    | '/fichas-tecnicas'
     | '/mantenimientos'
     | '/maquinas'
     | '/reportes'
     | '/talleres'
     | '/tipos'
+    | '/maquinas/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ConfiguracionRoute: typeof ConfiguracionRoute
-  FichasRoute: typeof FichasRoute
+  FichasTecnicasRoute: typeof FichasTecnicasRoute
   MantenimientosRoute: typeof MantenimientosRoute
-  MaquinasRoute: typeof MaquinasRoute
+  MaquinasRoute: typeof MaquinasRouteWithChildren
   ReportesRoute: typeof ReportesRoute
   TalleresRoute: typeof TalleresRoute
   TiposRoute: typeof TiposRoute
@@ -171,11 +183,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MantenimientosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/fichas': {
-      id: '/fichas'
-      path: '/fichas'
-      fullPath: '/fichas'
-      preLoaderRoute: typeof FichasRouteImport
+    '/fichas-tecnicas': {
+      id: '/fichas-tecnicas'
+      path: '/fichas-tecnicas'
+      fullPath: '/fichas-tecnicas'
+      preLoaderRoute: typeof FichasTecnicasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/configuracion': {
@@ -192,15 +204,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/maquinas/$id': {
+      id: '/maquinas/$id'
+      path: '/$id'
+      fullPath: '/maquinas/$id'
+      preLoaderRoute: typeof MaquinasIdRouteImport
+      parentRoute: typeof MaquinasRoute
+    }
   }
 }
+
+interface MaquinasRouteChildren {
+  MaquinasIdRoute: typeof MaquinasIdRoute
+}
+
+const MaquinasRouteChildren: MaquinasRouteChildren = {
+  MaquinasIdRoute: MaquinasIdRoute,
+}
+
+const MaquinasRouteWithChildren = MaquinasRoute._addFileChildren(
+  MaquinasRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ConfiguracionRoute: ConfiguracionRoute,
-  FichasRoute: FichasRoute,
+  FichasTecnicasRoute: FichasTecnicasRoute,
   MantenimientosRoute: MantenimientosRoute,
-  MaquinasRoute: MaquinasRoute,
+  MaquinasRoute: MaquinasRouteWithChildren,
   ReportesRoute: ReportesRoute,
   TalleresRoute: TalleresRoute,
   TiposRoute: TiposRoute,

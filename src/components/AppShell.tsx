@@ -16,7 +16,7 @@ const nav = [
   { to: "/mantenimientos", label: "Mantenimientos", icon: Wrench },
   { to: "/tipos", label: "Tipos de Mantenimiento", icon: ClipboardList },
   { to: "/talleres", label: "Talleres Externos", icon: Store },
-  { to: "/fichas", label: "Fichas Técnicas", icon: FileText },
+  { to: "/fichas-tecnicas", label: "Fichas Técnicas", icon: FileText },
   { to: "/reportes", label: "Reportes", icon: BarChart3 },
   { to: "/configuracion", label: "Configuración", icon: Settings },
 ] as const;
