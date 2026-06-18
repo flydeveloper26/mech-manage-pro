@@ -28,12 +28,12 @@ const emptyMachine = (code: string): Omit<Machine, "id"> => ({
 
 export function MachineFormDialog({ open, onOpenChange, machine }: Props) {
   const { machines, addMachine, updateMachine } = useMantePro();
-  const [form, setForm] = useState<Omit<Machine, "id">>(machine ?? emptyMachine(nextCode(machines)));
+  const [form, setForm] = useState<Omit<Machine, "id">>(() => machine ?? emptyMachine(nextCode(machines)));
 
-  // reset when reopened
-  const key = (machine?.id ?? "new") + String(open);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  useState(() => { setForm(machine ?? emptyMachine(nextCode(machines))); return key; });
+  useEffect(() => {
+    if (open) setForm(machine ?? emptyMachine(nextCode(machines)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, machine?.id]);
 
   const set = <K extends keyof Omit<Machine, "id">>(k: K, v: Omit<Machine, "id">[K]) => setForm((f) => ({ ...f, [k]: v }));
 
