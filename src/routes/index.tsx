@@ -209,10 +209,40 @@ function Dashboard() {
         </Card>
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-2">
-        {(["Operativo", "En Revisión", "En Taller", "Fuera de Servicio"] as const).map((s) => (
-          <StatusBadge key={s} status={s} />
-        ))}
+      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <Card className="bg-card border-border">
+          <CardHeader><CardTitle className="text-base">Documentos recientes</CardTitle></CardHeader>
+          <CardContent className="p-0">
+            {recentDocs.length === 0 ? (
+              <div className="p-6 text-sm text-muted-foreground">Sin documentos subidos.</div>
+            ) : (
+              <ul className="divide-y divide-border">
+                {recentDocs.map((d) => {
+                  const m = machines.find((x) => x.id === d.machineId);
+                  return (
+                    <li key={d.id} className="flex items-center gap-3 p-3 text-sm">
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium">{d.name}</div>
+                        <div className="text-xs text-muted-foreground">{d.category} · {m?.code}</div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">{formatDate(d.uploadedAt.slice(0,10))}</div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+        <Card className="bg-card border-border">
+          <CardHeader><CardTitle className="text-base">Estados</CardTitle></CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {(["Operativo", "En Revisión", "En Taller", "Fuera de Servicio"] as const).map((s) => (
+                <StatusBadge key={s} status={s} />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </AppShell>
   );
