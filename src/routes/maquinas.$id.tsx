@@ -1,4 +1,4 @@
-import { formatDate, formatDateLong } from "@/lib/format";
+import { formatDate, formatDateLong, formatNumber } from "@/lib/format";
 import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
@@ -86,7 +86,7 @@ function MachineDetail() {
             <Info label="Marca / Modelo" value={`${machine.brand} / ${machine.model}`} />
             <Info label="N° de Serie" value={machine.serial} mono />
             <Info label="Fecha de Compra" value={machine.purchaseDate ? formatDate(machine.purchaseDate) : "—"} />
-            <Info label="Costo" value={machine.cost ? `S/ ${machine.cost.toLocaleString()}` : "—"} />
+            <Info label="Costo" value={machine.cost ? `S/ ${formatNumber(machine.cost, 2)}` : "—"} />
             <Info label="Área" value={machine.area || machine.location} />
             <Info label="Departamento" value={machine.department} />
             <Info label="Potencia" value={machine.powerKw ? `${machine.powerKw} kW` : "—"} mono />
@@ -180,7 +180,7 @@ function MachineDetail() {
             <Kpi icon={Activity} label="MTBF" value={`${mtbf} h`} hint="Tiempo medio entre fallos" />
             <Kpi icon={Clock} label="MTTR" value={`${mttr} h`} hint="Tiempo medio de reparación" />
             <Kpi icon={Percent} label="Disponibilidad" value={`${availability}%`} hint="Últimos 30 días" />
-            <Kpi icon={Gauge} label="Horas operativas" value={machine.hoursOfUse.toLocaleString()} hint="Acumuladas" />
+            <Kpi icon={Gauge} label="Horas operativas" value={formatNumber(machine.hoursOfUse)} hint="Acumuladas" />
           </div>
         </TabsContent>
       </Tabs>
