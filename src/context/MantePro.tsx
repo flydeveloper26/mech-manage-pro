@@ -2,6 +2,8 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 
 export type MachineStatus = "Operativo" | "En Revisión" | "En Taller" | "Fuera de Servicio";
 export type Criticality = "Alto" | "Medio" | "Bajo";
+export type Frequency = "Diario" | "Semanal" | "Mensual" | "Semestral" | "Anual" | "A condición";
+export type RecordStatus = "Programado" | "En Proceso" | "Completado" | "Cancelado";
 
 export interface CriticalComponent {
   id: string;
@@ -35,59 +37,88 @@ export interface Machine {
   hoursOfUse: number;
   components: CriticalComponent[];
   sheetUpdatedAt?: string;
-  // legacy compat
   location: string;
   acquiredAt: string;
+}
+
+export interface TypeActivity {
+  id: string;
+  text: string;
+  durationMin: number;
+  role: string;
 }
 
 export interface MaintenanceType {
   id: string;
   name: string;
-  category: "Preventivo" | "Correctivo" | "Predictivo";
-  frequencyDays: number;
   description: string;
+  color: string;             // tailwind token color name (success, info, primary, etc.)
+  frequency: Frequency;
+  frequencyDays: number;
+  estimatedHours: number;
+  activities: TypeActivity[];
+  active: boolean;
+  // legacy
+  category: "Preventivo" | "Correctivo" | "Predictivo";
+}
+
+export interface RecordActivity {
+  id: string;
+  text: string;
+  done: boolean;
+  observations?: string;
+}
+
+export interface RecordPart {
+  id: string;
+  name: string;
+  quantity: number;
+  unitCost: number;
 }
 
 export interface MaintenanceRecord {
   id: string;
+  otm: string;                       // OTM-YYYY-NNN
   machineId: string;
   typeId: string;
-  date: string;
+  date: string;                      // YYYY-MM-DD
+  startTime?: string;                // HH:MM
+  endTime?: string;
   technician: string;
-  notes: string;
-  status: "Completado" | "Programado" | "En Proceso";
-  cost: number;
+  supervisor?: string;
+  area?: string;
+  status: RecordStatus;
+  notes: string;                     // legacy
+  activities: RecordActivity[];
+  parts: RecordPart[];
+  laborCost: number;
+  cost: number;                      // total general
+  postState?: string;
+  nextDate?: string;
+  nextTypeId?: string;
+  findings?: string;
+  technicianSignature?: string;
+  supervisorSignature?: string;
 }
 
 export interface Workshop {
-  id: string;
-  name: string;
-  contact: string;
-  phone: string;
-  specialty: string;
-  machinesInService: number;
+  id: string; name: string; contact: string; phone: string; specialty: string; machinesInService: number;
 }
-
 export interface TechSheet {
-  id: string;
-  machineId: string;
-  title: string;
-  updatedAt: string;
-  pages: number;
+  id: string; machineId: string; title: string; updatedAt: string; pages: number;
 }
 
 interface State {
-  machines: Machine[];
-  types: MaintenanceType[];
-  records: MaintenanceRecord[];
-  workshops: Workshop[];
-  sheets: TechSheet[];
+  machines: Machine[]; types: MaintenanceType[]; records: MaintenanceRecord[];
+  workshops: Workshop[]; sheets: TechSheet[];
   addMachine: (m: Omit<Machine, "id">) => void;
   updateMachine: (id: string, m: Partial<Machine>) => void;
   deleteMachine: (id: string) => void;
-  addRecord: (r: Omit<MaintenanceRecord, "id">) => void;
+  addRecord: (r: Omit<MaintenanceRecord, "id">) => string;
+  updateRecord: (id: string, r: Partial<MaintenanceRecord>) => void;
   deleteRecord: (id: string) => void;
   addType: (t: Omit<MaintenanceType, "id">) => void;
+  updateType: (id: string, t: Partial<MaintenanceType>) => void;
   deleteType: (id: string) => void;
   addWorkshop: (w: Omit<Workshop, "id">) => void;
   deleteWorkshop: (id: string) => void;
@@ -96,7 +127,6 @@ interface State {
 }
 
 const Ctx = createContext<State | null>(null);
-
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 const initialMachines: Machine[] = [
@@ -116,7 +146,7 @@ const initialMachines: Machine[] = [
       { id: uid(), name: "Rodamientos del husillo", function: "Soporte rotacional del husillo", state: "Operativo", criticality: "Medio" },
       { id: uid(), name: "Motor eléctrico", function: "Fuente de potencia", state: "Operativo", criticality: "Bajo" },
     ],
-    sheetUpdatedAt: new Date().toISOString().slice(0, 10),
+    sheetUpdatedAt: "2025-06-15",
     location: "Taller de Mecanizado", acquiredAt: "2015-06-15",
   },
   {
@@ -172,29 +202,210 @@ const initialMachines: Machine[] = [
 ];
 
 const initialTypes: MaintenanceType[] = [
-  { id: "t1", name: "Lubricación general", category: "Preventivo", frequencyDays: 30, description: "Engrasado de guías y husillos" },
-  { id: "t2", name: "Cambio de aceite hidráulico", category: "Preventivo", frequencyDays: 180, description: "Sustitución completa del fluido hidráulico" },
-  { id: "t3", name: "Reparación de motor", category: "Correctivo", frequencyDays: 0, description: "Diagnóstico y reparación de motor eléctrico" },
-  { id: "t4", name: "Análisis de vibraciones", category: "Predictivo", frequencyDays: 90, description: "Medición y análisis vibracional" },
-  { id: "t5", name: "Inspección eléctrica", category: "Preventivo", frequencyDays: 60, description: "Revisión de conexiones y consumo" },
+  {
+    id: "t-diario", name: "Preventivo Diario", color: "success", frequency: "Diario", frequencyDays: 1,
+    estimatedHours: 0.5, active: true, category: "Preventivo",
+    description: "Inspección visual y limpieza diaria del equipo.",
+    activities: [
+      { id: uid(), text: "Limpieza general de virutas y residuos", durationMin: 10, role: "Operador" },
+      { id: uid(), text: "Inspección visual de fugas", durationMin: 5, role: "Operador" },
+      { id: uid(), text: "Verificar niveles de lubricante", durationMin: 10, role: "Operador" },
+    ],
+  },
+  {
+    id: "t-semanal", name: "Preventivo Semanal", color: "info", frequency: "Semanal", frequencyDays: 7,
+    estimatedHours: 1.5, active: true, category: "Preventivo",
+    description: "Revisión semanal de elementos de transmisión y lubricación.",
+    activities: [
+      { id: uid(), text: "Lubricar guías de desplazamiento", durationMin: 20, role: "Técnico" },
+      { id: uid(), text: "Revisar tensión de correas", durationMin: 25, role: "Técnico" },
+      { id: uid(), text: "Verificar ajuste de pernos", durationMin: 20, role: "Técnico" },
+    ],
+  },
+  {
+    id: "t-mensual", name: "Preventivo Mensual", color: "primary", frequency: "Mensual", frequencyDays: 30,
+    estimatedHours: 3, active: true, category: "Preventivo",
+    description: "Mantenimiento mensual completo con revisión eléctrica.",
+    activities: [
+      { id: uid(), text: "Cambio de lubricante de husillo", durationMin: 45, role: "Técnico" },
+      { id: uid(), text: "Inspección de conexiones eléctricas", durationMin: 30, role: "Electricista" },
+      { id: uid(), text: "Calibración de mesa X/Y", durationMin: 60, role: "Técnico" },
+    ],
+  },
+  {
+    id: "t-semestral", name: "Preventivo Semestral", color: "warning", frequency: "Semestral", frequencyDays: 180,
+    estimatedHours: 8, active: true, category: "Preventivo",
+    description: "Overhaul semestral con cambio de consumibles.",
+    activities: [
+      { id: uid(), text: "Cambio de correas trapezoidales", durationMin: 90, role: "Técnico" },
+      { id: uid(), text: "Cambio de rodamientos críticos", durationMin: 180, role: "Mecánico" },
+      { id: uid(), text: "Reapriete general", durationMin: 60, role: "Técnico" },
+    ],
+  },
+  {
+    id: "t-correctivo", name: "Correctivo", color: "critical", frequency: "A condición", frequencyDays: 0,
+    estimatedHours: 4, active: true, category: "Correctivo",
+    description: "Reparación de falla detectada en el equipo.",
+    activities: [
+      { id: uid(), text: "Diagnóstico de falla", durationMin: 60, role: "Técnico" },
+      { id: uid(), text: "Reparación / reemplazo", durationMin: 180, role: "Mecánico" },
+      { id: uid(), text: "Pruebas de funcionamiento", durationMin: 30, role: "Técnico" },
+    ],
+  },
+  {
+    id: "t-predictivo", name: "Predictivo", color: "accent", frequency: "A condición", frequencyDays: 90,
+    estimatedHours: 2, active: true, category: "Predictivo",
+    description: "Análisis de condición (vibraciones, termografía, aceites).",
+    activities: [
+      { id: uid(), text: "Medición de vibraciones", durationMin: 45, role: "Técnico Predictivo" },
+      { id: uid(), text: "Termografía", durationMin: 30, role: "Técnico Predictivo" },
+      { id: uid(), text: "Análisis de aceite", durationMin: 45, role: "Técnico Predictivo" },
+    ],
+  },
+  {
+    id: "t-taller", name: "Taller Externo", color: "yellow", frequency: "A condición", frequencyDays: 0,
+    estimatedHours: 0, active: true, category: "Correctivo",
+    description: "Servicio realizado por taller externo.",
+    activities: [
+      { id: uid(), text: "Coordinar retiro de equipo", durationMin: 30, role: "Supervisor" },
+      { id: uid(), text: "Seguimiento de orden de servicio", durationMin: 0, role: "Supervisor" },
+    ],
+  },
 ];
 
-const today = new Date();
-const dPlus = (d: number) => new Date(today.getTime() + d * 86400000).toISOString().slice(0, 10);
-const dMinus = (d: number) => new Date(today.getTime() - d * 86400000).toISOString().slice(0, 10);
+const todayISO = () => new Date().toISOString().slice(0, 10);
+const dPlus = (d: number) => new Date(Date.UTC(2025, 5, 15) + d * 86400000).toISOString().slice(0, 10);
+
+// Historical OTMs for FRS-001 (2020-2024)
+const frsHistory: MaintenanceRecord[] = [
+  {
+    id: uid(), otm: "OTM-2020-001", machineId: "m1", typeId: "t-correctivo",
+    date: "2020-03-12", startTime: "08:30", endTime: "13:00",
+    technician: "Carlos Ruiz", supervisor: "J. Mendoza", area: "Taller de Mecanizado",
+    status: "Completado",
+    notes: "Falla de motor eléctrico — recalentamiento por sobrecarga.",
+    activities: [
+      { id: uid(), text: "Diagnóstico de falla", done: true, observations: "Bobinado del motor con cortocircuito parcial." },
+      { id: uid(), text: "Reemplazo de motor eléctrico 1.5kW", done: true },
+      { id: uid(), text: "Pruebas de funcionamiento", done: true },
+    ],
+    parts: [
+      { id: uid(), name: "Motor eléctrico 1.5kW 220V", quantity: 1, unitCost: 850 },
+      { id: uid(), name: "Cable de alimentación", quantity: 3, unitCost: 12 },
+    ],
+    laborCost: 180, cost: 1066,
+    postState: "Operativo", findings: "Recomendar protector térmico adicional.",
+    technicianSignature: "Carlos Ruiz", supervisorSignature: "J. Mendoza",
+  },
+  {
+    id: uid(), otm: "OTM-2021-014", machineId: "m1", typeId: "t-semestral",
+    date: "2021-09-08", startTime: "09:00", endTime: "17:30",
+    technician: "Juan Pérez", supervisor: "J. Mendoza", area: "Taller de Mecanizado",
+    status: "Completado",
+    notes: "Mantenimiento semestral programado.",
+    activities: [
+      { id: uid(), text: "Cambio de correas trapezoidales", done: true },
+      { id: uid(), text: "Cambio de rodamientos críticos", done: true },
+      { id: uid(), text: "Reapriete general", done: true },
+    ],
+    parts: [
+      { id: uid(), name: "Correa trapezoidal A-42", quantity: 2, unitCost: 35 },
+      { id: uid(), name: "Rodamiento 6205-2RS", quantity: 4, unitCost: 28 },
+    ],
+    laborCost: 240, cost: 422,
+    postState: "Operativo", findings: "Guías muestran desgaste — vigilar.",
+    technicianSignature: "Juan Pérez", supervisorSignature: "J. Mendoza",
+  },
+  {
+    id: uid(), otm: "OTM-2022-022", machineId: "m1", typeId: "t-correctivo",
+    date: "2022-05-19", startTime: "10:00", endTime: "12:30",
+    technician: "María López", supervisor: "J. Mendoza", area: "Taller de Mecanizado",
+    status: "Completado",
+    notes: "Ruido anormal en husillo principal.",
+    activities: [
+      { id: uid(), text: "Desmontaje del husillo", done: true },
+      { id: uid(), text: "Cambio de rodamientos del husillo", done: true, observations: "Pista exterior con picado." },
+      { id: uid(), text: "Montaje y alineación", done: true },
+    ],
+    parts: [
+      { id: uid(), name: "Rodamiento angular 7206 BEP", quantity: 2, unitCost: 95 },
+      { id: uid(), name: "Grasa SKF LGEP 2", quantity: 1, unitCost: 22 },
+    ],
+    laborCost: 150, cost: 362,
+    postState: "Operativo", findings: "Reducir intervalo de inspección.",
+    technicianSignature: "María López", supervisorSignature: "J. Mendoza",
+  },
+  {
+    id: uid(), otm: "OTM-2023-031", machineId: "m1", typeId: "t-predictivo",
+    date: "2023-11-04", startTime: "11:00", endTime: "13:00",
+    technician: "Luis Fernández", supervisor: "J. Mendoza", area: "Taller de Mecanizado",
+    status: "Completado",
+    notes: "Análisis predictivo trimestral.",
+    activities: [
+      { id: uid(), text: "Medición de vibraciones", done: true, observations: "ISO 10816 — zona B." },
+      { id: uid(), text: "Termografía", done: true, observations: "Motor a 62 °C, normal." },
+      { id: uid(), text: "Análisis de aceite", done: true },
+    ],
+    parts: [],
+    laborCost: 220, cost: 220,
+    postState: "Operativo", findings: "Continuar con plan preventivo actual.",
+    technicianSignature: "Luis Fernández", supervisorSignature: "J. Mendoza",
+  },
+  {
+    id: uid(), otm: "OTM-2024-007", machineId: "m1", typeId: "t-mensual",
+    date: "2024-04-22", startTime: "08:00", endTime: "11:30",
+    technician: "Juan Pérez", supervisor: "J. Mendoza", area: "Taller de Mecanizado",
+    status: "Completado",
+    notes: "Mantenimiento preventivo mensual.",
+    activities: [
+      { id: uid(), text: "Cambio de lubricante de husillo", done: true },
+      { id: uid(), text: "Inspección de conexiones eléctricas", done: true },
+      { id: uid(), text: "Calibración de mesa X/Y", done: true, observations: "Tolerancia 0.02 mm." },
+    ],
+    parts: [
+      { id: uid(), name: "Aceite ISO VG 68", quantity: 2, unitCost: 28 },
+    ],
+    laborCost: 140, cost: 196,
+    postState: "Operativo", findings: "Sin observaciones relevantes.",
+    technicianSignature: "Juan Pérez", supervisorSignature: "J. Mendoza",
+  },
+];
 
 const initialRecords: MaintenanceRecord[] = [
-  { id: "r1", machineId: "m1", typeId: "t1", date: dMinus(2), technician: "Juan Pérez", notes: "Lubricación rutinaria", status: "Completado", cost: 120 },
-  { id: "r2", machineId: "m2", typeId: "t3", date: dMinus(1), technician: "María López", notes: "Falla en eje principal", status: "En Proceso", cost: 850 },
-  { id: "r3", machineId: "m3", typeId: "t2", date: dMinus(5), technician: "Carlos Ruiz", notes: "Cambio programado", status: "Completado", cost: 540 },
-  { id: "r4", machineId: "m4", typeId: "t5", date: dMinus(7), technician: "Ana Torres", notes: "Conexiones revisadas", status: "Completado", cost: 90 },
-  { id: "r5", machineId: "m6", typeId: "t4", date: dMinus(10), technician: "Luis Fernández", notes: "Vibración dentro de rangos", status: "Completado", cost: 230 },
-  { id: "r6", machineId: "m1", typeId: "t5", date: dPlus(3), technician: "Juan Pérez", notes: "Inspección programada", status: "Programado", cost: 0 },
-  { id: "r7", machineId: "m4", typeId: "t1", date: dPlus(5), technician: "Ana Torres", notes: "Lubricación mensual", status: "Programado", cost: 0 },
-  { id: "r8", machineId: "m6", typeId: "t2", date: dPlus(12), technician: "Carlos Ruiz", notes: "Cambio semestral", status: "Programado", cost: 0 },
-  { id: "r9", machineId: "m2", typeId: "t1", date: dPlus(20), technician: "María López", notes: "Engrase general", status: "Programado", cost: 0 },
-  { id: "r10", machineId: "m1", typeId: "t1", date: dMinus(35), technician: "Juan Pérez", notes: "Engrase mensual previo", status: "Completado", cost: 110 },
-  { id: "r11", machineId: "m1", typeId: "t4", date: dMinus(90), technician: "Luis Fernández", notes: "Análisis vibracional trimestral", status: "Completado", cost: 220 },
+  ...frsHistory,
+  {
+    id: uid(), otm: "OTM-2025-001", machineId: "m2", typeId: "t-correctivo",
+    date: "2025-06-14", startTime: "09:00", technician: "María López", supervisor: "J. Mendoza",
+    area: "Nave A", status: "En Proceso", notes: "Falla en eje principal — en diagnóstico.",
+    activities: [], parts: [], laborCost: 0, cost: 850,
+  },
+  {
+    id: uid(), otm: "OTM-2025-002", machineId: "m3", typeId: "t-semestral",
+    date: "2025-06-10", startTime: "08:00", endTime: "16:00",
+    technician: "Carlos Ruiz", supervisor: "J. Mendoza", area: "Nave B",
+    status: "Completado", notes: "Cambio programado de aceite hidráulico.",
+    activities: [], parts: [], laborCost: 200, cost: 540,
+    technicianSignature: "Carlos Ruiz", supervisorSignature: "J. Mendoza",
+  },
+  {
+    id: uid(), otm: "OTM-2025-003", machineId: "m4", typeId: "t-semanal",
+    date: "2025-06-08", technician: "Ana Torres", supervisor: "J. Mendoza",
+    area: "Nave B", status: "Completado", notes: "Revisión eléctrica semanal.",
+    activities: [], parts: [], laborCost: 90, cost: 90,
+    technicianSignature: "Ana Torres",
+  },
+  {
+    id: uid(), otm: "OTM-2025-004", machineId: "m1", typeId: "t-semanal",
+    date: dPlus(3), technician: "Juan Pérez", supervisor: "J. Mendoza",
+    area: "Taller de Mecanizado", status: "Programado", notes: "Inspección semanal programada.",
+    activities: [], parts: [], laborCost: 0, cost: 0,
+  },
+  {
+    id: uid(), otm: "OTM-2025-005", machineId: "m6", typeId: "t-semestral",
+    date: dPlus(12), technician: "Carlos Ruiz", supervisor: "J. Mendoza",
+    area: "Nave A", status: "Programado", notes: "Cambio semestral.",
+    activities: [], parts: [], laborCost: 0, cost: 0,
+  },
 ];
 
 const initialWorkshops: Workshop[] = [
@@ -222,9 +433,11 @@ export function MantePoProvider({ children }: { children: ReactNode }) {
     addMachine: (m) => setMachines((x) => [...x, { ...m, id: uid() }]),
     updateMachine: (id, patch) => setMachines((x) => x.map((m) => (m.id === id ? { ...m, ...patch } : m))),
     deleteMachine: (id) => setMachines((x) => x.filter((m) => m.id !== id)),
-    addRecord: (r) => setRecords((x) => [{ ...r, id: uid() }, ...x]),
+    addRecord: (r) => { const id = uid(); setRecords((x) => [{ ...r, id }, ...x]); return id; },
+    updateRecord: (id, patch) => setRecords((x) => x.map((r) => (r.id === id ? { ...r, ...patch } : r))),
     deleteRecord: (id) => setRecords((x) => x.filter((r) => r.id !== id)),
     addType: (t) => setTypes((x) => [...x, { ...t, id: uid() }]),
+    updateType: (id, patch) => setTypes((x) => x.map((t) => (t.id === id ? { ...t, ...patch } : t))),
     deleteType: (id) => setTypes((x) => x.filter((t) => t.id !== id)),
     addWorkshop: (w) => setWorkshops((x) => [...x, { ...w, id: uid() }]),
     deleteWorkshop: (id) => setWorkshops((x) => x.filter((w) => w.id !== id)),
@@ -232,10 +445,10 @@ export function MantePoProvider({ children }: { children: ReactNode }) {
       if (m.id !== machineId) return m;
       const exists = m.components.some((k) => k.id === c.id);
       const components = exists ? m.components.map((k) => (k.id === c.id ? c : k)) : [...m.components, c];
-      return { ...m, components, sheetUpdatedAt: new Date().toISOString().slice(0, 10) };
+      return { ...m, components, sheetUpdatedAt: todayISO() };
     })),
     deleteComponent: (machineId, componentId) => setMachines((x) => x.map((m) =>
-      m.id === machineId ? { ...m, components: m.components.filter((c) => c.id !== componentId), sheetUpdatedAt: new Date().toISOString().slice(0, 10) } : m,
+      m.id === machineId ? { ...m, components: m.components.filter((c) => c.id !== componentId), sheetUpdatedAt: todayISO() } : m,
     )),
   };
 
@@ -253,3 +466,26 @@ export const nextCode = (machines: Machine[], prefix = "MAQ") => {
   const next = (nums.length ? Math.max(...nums) : 0) + 1;
   return `${prefix}-${String(next).padStart(3, "0")}`;
 };
+
+export const nextOTM = (records: MaintenanceRecord[]) => {
+  const y = new Date().getUTCFullYear();
+  const nums = records.map((r) => {
+    const m = r.otm?.match(/OTM-(\d{4})-(\d+)/);
+    return m && Number(m[1]) === y ? Number(m[2]) : 0;
+  });
+  const next = (nums.length ? Math.max(...nums, 0) : 0) + 1;
+  return `OTM-${y}-${String(next).padStart(3, "0")}`;
+};
+
+export const TYPE_COLOR_OPTIONS: { value: string; label: string; className: string }[] = [
+  { value: "success", label: "Verde", className: "bg-success/15 text-success border-success/30" },
+  { value: "info",    label: "Azul",  className: "bg-info/15 text-info border-info/30" },
+  { value: "primary", label: "Ámbar", className: "bg-primary/15 text-primary border-primary/30" },
+  { value: "warning", label: "Naranja", className: "bg-warning/15 text-warning border-warning/30" },
+  { value: "critical", label: "Rojo", className: "bg-critical/15 text-critical border-critical/30" },
+  { value: "accent",  label: "Cian",  className: "bg-accent/15 text-accent border-accent/30" },
+  { value: "yellow",  label: "Amarillo", className: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
+];
+
+export const typeColorClass = (color: string) =>
+  TYPE_COLOR_OPTIONS.find((o) => o.value === color)?.className ?? "bg-muted text-muted-foreground border-border";
