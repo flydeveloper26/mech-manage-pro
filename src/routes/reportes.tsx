@@ -11,7 +11,7 @@ import { useMantePro } from "@/context/MantePro";
 import { formatDate } from "@/lib/format";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, LineChart, Line,
+  PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { Printer, Download, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
