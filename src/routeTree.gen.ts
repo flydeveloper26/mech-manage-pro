@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TiposRouteImport } from './routes/tipos'
 import { Route as TalleresRouteImport } from './routes/talleres'
 import { Route as ReportesRouteImport } from './routes/reportes'
 import { Route as MaquinasRouteImport } from './routes/maquinas'
@@ -19,11 +18,6 @@ import { Route as ConfiguracionRouteImport } from './routes/configuracion'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MaquinasIdRouteImport } from './routes/maquinas.$id'
 
-const TiposRoute = TiposRouteImport.update({
-  id: '/tipos',
-  path: '/tipos',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TalleresRoute = TalleresRouteImport.update({
   id: '/talleres',
   path: '/talleres',
@@ -73,7 +67,6 @@ export interface FileRoutesByFullPath {
   '/maquinas': typeof MaquinasRouteWithChildren
   '/reportes': typeof ReportesRoute
   '/talleres': typeof TalleresRoute
-  '/tipos': typeof TiposRoute
   '/maquinas/$id': typeof MaquinasIdRoute
 }
 export interface FileRoutesByTo {
@@ -84,7 +77,6 @@ export interface FileRoutesByTo {
   '/maquinas': typeof MaquinasRouteWithChildren
   '/reportes': typeof ReportesRoute
   '/talleres': typeof TalleresRoute
-  '/tipos': typeof TiposRoute
   '/maquinas/$id': typeof MaquinasIdRoute
 }
 export interface FileRoutesById {
@@ -96,7 +88,6 @@ export interface FileRoutesById {
   '/maquinas': typeof MaquinasRouteWithChildren
   '/reportes': typeof ReportesRoute
   '/talleres': typeof TalleresRoute
-  '/tipos': typeof TiposRoute
   '/maquinas/$id': typeof MaquinasIdRoute
 }
 export interface FileRouteTypes {
@@ -109,7 +100,6 @@ export interface FileRouteTypes {
     | '/maquinas'
     | '/reportes'
     | '/talleres'
-    | '/tipos'
     | '/maquinas/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -120,7 +110,6 @@ export interface FileRouteTypes {
     | '/maquinas'
     | '/reportes'
     | '/talleres'
-    | '/tipos'
     | '/maquinas/$id'
   id:
     | '__root__'
@@ -131,7 +120,6 @@ export interface FileRouteTypes {
     | '/maquinas'
     | '/reportes'
     | '/talleres'
-    | '/tipos'
     | '/maquinas/$id'
   fileRoutesById: FileRoutesById
 }
@@ -143,18 +131,10 @@ export interface RootRouteChildren {
   MaquinasRoute: typeof MaquinasRouteWithChildren
   ReportesRoute: typeof ReportesRoute
   TalleresRoute: typeof TalleresRoute
-  TiposRoute: typeof TiposRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/tipos': {
-      id: '/tipos'
-      path: '/tipos'
-      fullPath: '/tipos'
-      preLoaderRoute: typeof TiposRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/talleres': {
       id: '/talleres'
       path: '/talleres'
@@ -234,7 +214,6 @@ const rootRouteChildren: RootRouteChildren = {
   MaquinasRoute: MaquinasRouteWithChildren,
   ReportesRoute: ReportesRoute,
   TalleresRoute: TalleresRoute,
-  TiposRoute: TiposRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
